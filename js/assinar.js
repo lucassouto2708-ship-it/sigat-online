@@ -34,22 +34,29 @@ async function carregar() {
 
 // ---------- Quadro de desenho ----------
 function prepararQuadro() {
-  const escala = window.devicePixelRatio || 1;
   const r = quadro.getBoundingClientRect();
-  quadro.width = r.width * escala;
-  quadro.height = r.height * escala;
-  ctx.scale(escala, escala);
-  ctx.lineWidth = 2.4;
+  const escala = Math.max(window.devicePixelRatio || 1, 1);
+  quadro.width = Math.round(r.width * escala);
+  quadro.height = Math.round(r.height * escala);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.lineWidth = 2.4 * escala;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   ctx.strokeStyle = "#0b1f3a";
   desenhou = false;
 }
 
+// Se a tela mudar de tamanho (ex.: girar o celular) antes de assinar, refaz o quadro
+window.addEventListener("resize", () => { if (!desenhou && !$("form-assinar").hidden) prepararQuadro(); });
+
 let desenhando = false;
+// Converte a posição do mouse/dedo para a escala real do quadro
 function ponto(e) {
   const r = quadro.getBoundingClientRect();
-  return { x: e.clientX - r.left, y: e.clientY - r.top };
+  return {
+    x: (e.clientX - r.left) * (quadro.width / r.width),
+    y: (e.clientY - r.top) * (quadro.height / r.height),
+  };
 }
 quadro.addEventListener("pointerdown", (e) => {
   desenhando = true;
@@ -68,7 +75,11 @@ quadro.addEventListener("pointermove", (e) => {
 ["pointerup", "pointercancel"].forEach((ev) => quadro.addEventListener(ev, () => (desenhando = false)));
 
 $("btn-limpar").addEventListener("click", () => {
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, quadro.width, quadro.height);
+  ctx.restore();
+  ctx.beginPath();
   desenhou = false;
 });
 
