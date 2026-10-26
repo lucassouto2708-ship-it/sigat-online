@@ -126,17 +126,39 @@ create trigger termos_antes_inserir
   before insert on public.termos
   for each row execute function public.termos_antes_inserir();
 
--- BLOQUEIO DEFINITIVO: termo assinado não muda nunca (nem pelo admin).
+-- Lixeira: cópia completa de cada termo excluído
+create table if not exists public.termos_excluidos (
+  id           bigint generated always as identity primary key,
+  numero       text not null,
+  dados        jsonb not null,
+  excluido_por uuid,
+  excluido_em  timestamptz not null default now()
+);
+
+alter table public.termos_excluidos enable row level security;
+
+drop policy if exists lixeira_admin_ler on public.termos_excluidos;
+create policy lixeira_admin_ler on public.termos_excluidos
+  for select to authenticated
+  using (public.eh_admin());
+
+revoke all on public.termos_excluidos from anon;
+
+-- Termo assinado: ninguém altera. Só o administrador pode excluir.
 -- Também impede que a assinatura seja gravada por fora da função oficial.
 create or replace function public.termos_antes_alterar()
 returns trigger
 language plpgsql
+security definer
+set search_path = public
 as $$
 begin
   if tg_op = 'DELETE' then
-    if old.status = 'assinado' then
-      raise exception 'Termo % já foi assinado e não pode ser excluído.', old.numero;
+    if not public.eh_admin() then
+      raise exception 'Somente o administrador pode excluir termos.';
     end if;
+    insert into public.termos_excluidos (numero, dados, excluido_por)
+    values (old.numero, to_jsonb(old), auth.uid());
     return old;
   end if;
 

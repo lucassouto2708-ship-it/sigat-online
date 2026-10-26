@@ -242,7 +242,9 @@ async function abrirTermo(id) {
       <div class="botoes">
         <button class="btn" id="btn-imprimir">Imprimir / Salvar PDF</button>
         <button class="btn sec" id="btn-voltar">Voltar</button>
-      </div>`;
+        ${ehAdmin() ? '<button class="btn perigo" id="btn-excluir">Excluir</button>' : ""}
+      </div>
+      <div id="termo-msg"></div>`;
   } else {
     const link = linkAssinatura(t.token_assinatura);
     acoes.innerHTML = `
@@ -270,17 +272,23 @@ async function abrirTermo(id) {
       if (erro) return mensagem("termo-msg", textoErro(erro));
       abrirTermo(t.id);
     });
-    if (ehAdmin()) {
-      $("btn-excluir").addEventListener("click", async () => {
-        if (!confirm(`Excluir definitivamente o termo ${t.numero}?`)) return;
-        const { error: erro } = await sb.from("termos").delete().eq("id", t.id);
-        if (erro) return mensagem("termo-msg", textoErro(erro));
-        ir("termos");
-      });
-    }
   }
   $("btn-imprimir").addEventListener("click", () => window.print());
   $("btn-voltar").addEventListener("click", () => ir("termos"));
+  if (ehAdmin()) $("btn-excluir").addEventListener("click", () => excluirTermo(t));
+}
+
+// Só o administrador exclui. O banco guarda uma cópia na lixeira (termos_excluidos).
+async function excluirTermo(t) {
+  const aviso = t.status === "assinado" ? "ATENÇÃO: este termo JÁ FOI ASSINADO.\n\n" : "";
+  const digitado = prompt(`${aviso}Para excluir, digite o número do termo:\n${t.numero}`);
+  if (digitado === null) return;
+  if (digitado.trim().toUpperCase() !== t.numero) return mensagem("termo-msg", "Número digitado não confere. Nada foi excluído.");
+  const { data, error } = await sb.from("termos").delete().eq("id", t.id).select("id");
+  if (error) return mensagem("termo-msg", textoErro(error));
+  if (!data?.length) return mensagem("termo-msg", "Não foi possível excluir este termo.");
+  alert(`Termo ${t.numero} excluído.`);
+  ir("termos");
 }
 
 // ---------------------------------------------------------------------
