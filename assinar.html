@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Assinar termo — SIGAT Online</title>
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+<header class="topo"><div class="marca">SIGAT ONLINE<small>TR Assessoria Pública</small></div></header>
+<main>
+  <div id="carregando" class="cartao">Carregando termo…</div>
+  <div id="erro" hidden></div>
+  <div id="documento"></div>
+
+  <form id="form-assinar" class="cartao" hidden style="margin-top:20px">
+    <h2>Assinatura do responsável</h2>
+    <p>Confira os dados acima. Se estiverem corretos, informe seu nome completo e assine no quadro abaixo
+      (com o dedo, no celular, ou com o mouse, no computador).</p>
+    <label for="nome">Nome completo *</label>
+    <input id="nome" required autocomplete="name">
+    <div style="height:14px"></div>
+    <label>Assinatura *</label>
+    <canvas id="quadro" class="quadro"></canvas>
+    <div class="botoes">
+      <button type="submit" class="btn verde" id="btn-assinar">Confirmar assinatura</button>
+      <button type="button" class="btn sec" id="btn-limpar">Limpar quadro</button>
+    </div>
+    <div id="msg"></div>
+  </form>
+
+  <div id="sucesso" class="cartao" hidden>
+    <div class="msg ok" style="margin-top:0">Termo assinado com sucesso. A equipe já poderá visualizar no painel. Obrigado!</div>
+    <div class="botoes"><button class="btn sec" onclick="window.print()">Imprimir / Salvar PDF</button></div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/comum.js"></script>
+<script src="js/assinar.js"></script>
+</body>
+</html>

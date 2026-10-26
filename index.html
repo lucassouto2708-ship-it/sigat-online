@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SIGAT Online</title>
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<section id="tela-login" hidden>
+  <div class="cartao login">
+    <div class="marca">SIGAT ONLINE<small>TR Assessoria Pública</small></div>
+    <form id="form-login">
+      <label for="login-email">E-mail</label>
+      <input id="login-email" type="email" autocomplete="username" required>
+      <div style="height:12px"></div>
+      <label for="login-senha">Senha</label>
+      <input id="login-senha" type="password" autocomplete="current-password" required>
+      <div class="botoes"><button class="btn" type="submit" style="width:100%;justify-content:center">Entrar</button></div>
+      <div id="login-msg"></div>
+    </form>
+  </div>
+</section>
+
+<!-- ================= SISTEMA ================= -->
+<section id="tela-sistema" hidden>
+  <header class="topo">
+    <div class="marca">SIGAT ONLINE<small>TR Assessoria Pública</small></div>
+    <nav class="menu">
+      <button data-ir="painel">Painel</button>
+      <button data-ir="novo">Novo atendimento</button>
+      <button data-ir="termos">Termos</button>
+      <button data-ir="servidores" class="so-admin">Servidores</button>
+    </nav>
+    <div class="usuario"><span id="usuario-nome"></span><button id="btn-sair">Sair</button></div>
+  </header>
+
+  <main>
+    <!-- Painel -->
+    <div id="view-painel" class="view" hidden>
+      <h1 id="painel-titulo">Painel</h1>
+      <div class="indicadores">
+        <div class="indicador"><span id="ind-total-rotulo">Total de atendimentos</span><strong id="ind-total">–</strong></div>
+        <div class="indicador"><span>Assinados</span><strong id="ind-assinados">–</strong></div>
+        <div class="indicador"><span>Aguardando assinatura</span><strong id="ind-pendentes">–</strong></div>
+        <div class="indicador so-admin"><span>Servidores</span><strong id="ind-servidores">–</strong></div>
+      </div>
+      <div class="cartao">
+        <h2>Últimos atendimentos</h2>
+        <div class="tabela-wrap"><table>
+          <thead><tr><th>Número</th><th>Data</th><th>Local</th><th>Responsável</th><th class="so-admin">Servidor</th><th>Status</th></tr></thead>
+          <tbody id="painel-lista"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Novo / editar atendimento -->
+    <div id="view-novo" class="view" hidden>
+      <h1 id="form-titulo">Novo atendimento</h1>
+      <form id="form-termo" class="cartao">
+        <input type="hidden" id="termo-id">
+        <div class="campos">
+          <div><label for="f-data">Data do atendimento *</label><input id="f-data" type="date" required></div>
+          <div><label for="f-tipo">Tipo de atendimento *</label>
+            <select id="f-tipo" required>
+              <option value="">Selecione…</option>
+              <option>Suporte técnico</option>
+              <option>Treinamento</option>
+              <option>Instalação / configuração</option>
+              <option>Consultoria / orientação</option>
+              <option>Visita técnica</option>
+              <option>Outro</option>
+            </select>
+          </div>
+          <div><label for="f-local">Local *</label><input id="f-local" required placeholder="Ex.: Prefeitura Municipal de …"></div>
+          <div><label for="f-setor">Setor</label><input id="f-setor" placeholder="Ex.: Recursos Humanos"></div>
+          <div><label for="f-resp">Nome do responsável *</label><input id="f-resp" required></div>
+          <div><label for="f-tel">Telefone / WhatsApp do responsável</label><input id="f-tel" type="tel" placeholder="(00) 00000-0000"></div>
+          <div class="inteiro"><label for="f-desc">Descrição do serviço realizado *</label><textarea id="f-desc" required></textarea></div>
+          <div class="inteiro"><label for="f-sit">Situação / resolução *</label>
+            <select id="f-sit" required>
+              <option value="">Selecione…</option>
+              <option>Concluído</option>
+              <option>Parcialmente concluído</option>
+              <option>Pendente</option>
+              <option>Encaminhado</option>
+            </select>
+          </div>
+        </div>
+        <div class="botoes">
+          <button class="btn" type="submit" id="btn-salvar">Salvar atendimento</button>
+          <button class="btn sec" type="button" id="btn-cancelar">Cancelar</button>
+        </div>
+        <div id="form-msg"></div>
+      </form>
+    </div>
+
+    <!-- Lista de termos -->
+    <div id="view-termos" class="view" hidden>
+      <h1>Termos de atendimento</h1>
+      <div class="cartao">
+        <div class="filtros">
+          <input id="busca" type="search" placeholder="Buscar por número, local, responsável…">
+          <select id="filtro-status">
+            <option value="">Todos</option>
+            <option value="pendente">Aguardando assinatura</option>
+            <option value="assinado">Assinados</option>
+          </select>
+        </div>
+        <div class="tabela-wrap"><table>
+          <thead><tr><th>Número</th><th>Data</th><th>Local / Setor</th><th>Responsável</th><th class="so-admin">Servidor</th><th>Status</th></tr></thead>
+          <tbody id="termos-lista"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- Visualizar termo -->
+    <div id="view-termo" class="view" hidden>
+      <div class="cartao nao-imprimir" id="termo-acoes"></div>
+      <div id="termo-documento"></div>
+    </div>
+
+    <!-- Servidores (admin) -->
+    <div id="view-servidores" class="view" hidden>
+      <h1>Servidores</h1>
+      <form id="form-servidor" class="cartao">
+        <h2>Cadastrar servidor</h2>
+        <div class="campos">
+          <div><label for="s-nome">Nome *</label><input id="s-nome" required></div>
+          <div><label for="s-email">E-mail *</label><input id="s-email" type="email" required></div>
+          <div><label for="s-senha">Senha inicial * (mín. 8 caracteres)</label><input id="s-senha" type="text" minlength="8" required></div>
+          <div><label for="s-papel">Perfil</label>
+            <select id="s-papel"><option value="servidor">Servidor</option><option value="admin">Administrador</option></select>
+          </div>
+        </div>
+        <div class="botoes"><button class="btn" type="submit">Cadastrar</button></div>
+        <div id="servidor-msg"></div>
+      </form>
+      <div class="cartao">
+        <h2>Cadastrados</h2>
+        <div class="tabela-wrap"><table>
+          <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th></th></tr></thead>
+          <tbody id="servidores-lista"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<div id="aviso-config" class="cartao login" hidden>
+  <h2>Configuração pendente</h2>
+  <p>Abra o arquivo <code>js/config.js</code> e preencha a URL e a chave <em>anon</em> do Supabase.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/comum.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
