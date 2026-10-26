@@ -54,10 +54,16 @@ function htmlDocumento(t, opcoes = {}) {
   return `
   <div class="documento">
     <div class="doc-cabecalho">
-      <div class="empresa">${esc(CFG?.EMPRESA || "TR Assessoria Pública")}<small>SIGAT Online — Sistema Integrado de Gestão de Atendimentos e Termos</small></div>
-      <div class="doc-numero">Termo nº<br><strong>${esc(t.numero)}</strong></div>
+      <img class="doc-logo" src="img/logo.png" alt="TR Assessoria Pública">
+      <div class="doc-empresa">
+        <strong>${esc((CFG?.EMPRESA || "TR Assessoria Pública").toUpperCase())}</strong>
+        <small>Rua José Ivair Ferreira Matos, n.º 295 – Bairro Sto. Agostinho – Gov. Valadares / MG</small>
+        <small>Tel.: 33 3276-8262 – tr@trassessoria.com.br</small>
+        <small>www.trassessoria.com.br</small>
+        <div class="doc-titulo">TERMO DE ATENDIMENTO</div>
+      </div>
     </div>
-    <p class="doc-titulo">TERMO DE ATENDIMENTO</p>
+    <p class="doc-numero"><strong>Termo:</strong> ${esc(t.numero)}</p>
     <div class="doc-grade">
       <div><span>Data do atendimento</span>${esc(dataBR(t.data_atendimento))}</div>
       <div><span>Tipo de atendimento</span>${esc(t.tipo)}</div>
