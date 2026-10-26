@@ -7,7 +7,7 @@
 // NUNCA coloque aqui a chave "service_role".
 // =====================================================================
 window.SIGAT_CONFIG = {
-  SUPABASE_URL: "COLE_AQUI_A_PROJECT_URL",
-  SUPABASE_ANON_KEY: "COLE_AQUI_A_ANON_KEY",
+  SUPABASE_URL: "https://dqjprrubatrgtxhbabci.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_iClPLbpHR9HDJvgBts9VDg_oZDEqPHo",
   EMPRESA: "TR Assessoria Pública",
 };

@@ -75,11 +75,13 @@ where email = 'seu-email@exemplo.com';
 1. Menu **Edge Functions** > **Deploy a new function** > **Via Editor**.
 2. Nome da função: `criar-servidor` (exatamente assim).
 3. Apague o código de exemplo, cole **todo** o conteúdo de `supabase/functions/criar-servidor/index.ts` e clique em **Deploy**.
+4. Na aba **Settings** da função, desligue **Verify JWT with legacy secret** e clique em **Save changes**
+   (a própria função já confere se quem chama é administrador).
 
 ### 6. Ligar o site ao Supabase
 
 1. No Supabase: **Project Settings** > **API** (ou **Data API** / **API Keys**).
-2. Copie a **Project URL** e a chave **anon public**.
+2. Copie a **Project URL** e a chave pública: **Publishable key** (`sb_publishable_...`) ou, em projetos antigos, a **anon public**.
 3. No GitHub, abra `js/config.js`, clique no lápis, cole os dois valores no lugar de `COLE_AQUI_...` e salve (**Commit changes**).
 
 > Use **somente** a chave `anon`. Nunca coloque a chave `service_role` no site.
