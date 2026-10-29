@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="34 -24 160 160">
+  <defs>
+    <linearGradient id="tr-elipse" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#f0444b"/><stop offset="1" stop-color="#e02932"/>
+    </linearGradient>
+    <linearGradient id="tr-r" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#e8333b"/><stop offset="1" stop-color="#c11f29"/>
+    </linearGradient>
+    <linearGradient id="tr-t" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a9abae"/><stop offset="1" stop-color="#8e9194"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="114.1" cy="62" rx="63.3" ry="46" transform="rotate(-11 114.1 62)" fill="url(#tr-elipse)"/>
+  <path fill="url(#tr-t)" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" paint-order="stroke"
+        d="M42.4 25.1 L125 11.2 L129.8 24.6 L97.6 30.2 L110.5 78.1 L86.4 82.9 L72.2 34.4 L38.1 39.2 Z"/>
+  <path fill="url(#tr-r)" fill-rule="evenodd" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" paint-order="stroke"
+        d="M105.1 45.6 L151 39.1 C164 38.4 177.6 45.5 177.9 57.5 C178.1 65.5 175.4 70.8 171.5 74.9 L189.4 93.6 L167.5 102.4 L146.8 80.4 L141.9 81 L149.1 107.1 L123.5 109.4 Z
+           M134.9 58.8 C135.4 57.1 139.6 56.3 144.8 56.1 C149.6 56 153.2 57.6 153 61.6 C152.8 66.6 148.3 71 141.2 71.8 Z"/>
+</svg>
