@@ -36,7 +36,8 @@ body {
   gap: 16px;
   flex-wrap: wrap;
 }
-.marca { font-weight: 700; font-size: 18px; letter-spacing: .5px; }
+.marca { font-weight: 700; font-size: 18px; letter-spacing: .5px; display: flex; align-items: center; gap: 10px; line-height: 1.2; }
+.marca-logo { height: 36px; width: auto; display: block; }
 .marca small { display: block; font-weight: 400; font-size: 12px; opacity: .85; letter-spacing: 0; }
 .menu { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
 .menu button {
@@ -57,7 +58,8 @@ h1 { font-size: 22px; margin: 0 0 16px; color: var(--azul-escuro); }
 h2 { font-size: 17px; margin: 0 0 12px; color: var(--azul-escuro); }
 
 .login { max-width: 380px; margin: 60px auto; }
-.login .marca { color: var(--azul); text-align: center; font-size: 26px; margin-bottom: 20px; }
+.login .marca { color: var(--azul); text-align: center; font-size: 26px; margin-bottom: 20px; flex-direction: column; gap: 12px; }
+.login .marca-logo { height: 84px; }
 .login .marca small { color: var(--suave); font-size: 14px; }
 
 /* ---------- Indicadores ---------- */
@@ -162,4 +164,15 @@ tr.clicavel:hover td { background: var(--azul-claro); }
   .cartao, .documento { border: 0; padding: 0; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   @page { margin: 18mm; }
+}
+
+/* ---------- Barra no celular ---------- */
+@media (max-width: 640px) {
+  .topo { padding: 10px 12px; gap: 8px; }
+  .topo .marca { order: 1; font-size: 16px; }
+  .marca-logo { height: 30px; }
+  .usuario { order: 2; margin-left: auto; }
+  .usuario span { display: none; }
+  .menu { order: 3; flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; }
+  .menu button { white-space: nowrap; }
 }
