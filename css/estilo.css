@@ -153,6 +153,16 @@ tr.clicavel:hover td { background: var(--azul-claro); }
 .link-box { display: flex; gap: 8px; margin-top: 8px; }
 .link-box input { font-size: 13px; }
 
+/* ---------- Anexos ---------- */
+.anexos { list-style: none; margin: 0 0 12px; padding: 0; }
+.anexos li { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 8px 0; border-bottom: 1px solid var(--borda); }
+.anexo-nome { word-break: break-all; }
+.anexo-nome small { color: var(--suave); }
+.anexo-acoes { display: flex; gap: 6px; }
+.anexar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.anexar input[type=file] { flex: 1; min-width: 200px; }
+
 /* ---------- Quadro de assinatura ---------- */
 .quadro { border: 2px dashed var(--borda); border-radius: 8px; background: #fff; touch-action: none; width: 100%; height: 200px; display: block; cursor: crosshair; }
 

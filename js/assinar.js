@@ -26,10 +26,28 @@ async function carregar() {
       <strong>${esc(termo.assinado_por)}</strong> em ${esc(dataHoraBR(termo.assinado_em))}.</div></div>`;
     return;
   }
+  const { data: anexos } = await sb.rpc("anexos_para_assinatura", { p_token: token });
+  termo.anexos = anexos || [];
   $("documento").innerHTML = htmlDocumento(termo, { semAssinatura: true });
+  mostrarAnexos();
   $("nome").value = termo.responsavel_nome || "";
   $("form-assinar").hidden = false;
   prepararQuadro();
+}
+
+function mostrarAnexos() {
+  if (!termo.anexos.length) return;
+  $("anexos").hidden = false;
+  $("anexos").innerHTML = `<h2>Documentos anexos</h2>
+    <p>Confira também ${termo.anexos.length > 1 ? "os arquivos anexados" : "o arquivo anexado"} a este termo antes de assinar.</p>
+    ${htmlListaAnexos(termo.anexos, false)}<div id="anexos-msg"></div>`;
+  $("anexos").querySelectorAll("[data-baixar]").forEach((b) => b.addEventListener("click", async () => {
+    b.disabled = true;
+    const { data, error } = await sb.rpc("anexo_para_assinatura", { p_token: token, p_id: Number(b.dataset.baixar) });
+    b.disabled = false;
+    if (error || !data) return mensagem("anexos-msg", error ? textoErro(error) : "Arquivo não encontrado.");
+    baixarAnexo(data.nome, data.tipo, data.conteudo);
+  }));
 }
 
 // ---------- Quadro de desenho ----------

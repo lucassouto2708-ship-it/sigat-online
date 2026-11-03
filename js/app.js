@@ -232,6 +232,8 @@ async function abrirTermo(id) {
   $("termo-documento").innerHTML = "";
   const { data: t, error } = await sb.from("termos").select("*").eq("id", id).single();
   if (error) { acoes.innerHTML = `<div class="msg erro">${esc(textoErro(error))}</div>`; return; }
+  const { data: anexos } = await sb.from("termos_anexos").select("id, nome, tipo, tamanho").eq("termo_id", id).order("id");
+  t.anexos = anexos || [];
 
   $("termo-documento").innerHTML = htmlDocumento(t);
 
@@ -244,7 +246,8 @@ async function abrirTermo(id) {
         <button class="btn sec" id="btn-voltar">Voltar</button>
         ${ehAdmin() ? '<button class="btn perigo" id="btn-excluir">Excluir</button>' : ""}
       </div>
-      <div id="termo-msg"></div>`;
+      <div id="termo-msg"></div>
+      ${t.anexos.length ? `<h2 style="margin-top:20px">Anexos</h2>${htmlListaAnexos(t.anexos, false)}` : ""}`;
   } else {
     const link = linkAssinatura(t.token_assinatura);
     acoes.innerHTML = `
@@ -259,7 +262,23 @@ async function abrirTermo(id) {
         <button class="btn sec" id="btn-voltar">Voltar</button>
         ${ehAdmin() ? '<button class="btn perigo" id="btn-excluir">Excluir</button>' : ""}
       </div>
-      <div id="termo-msg"></div>`;
+      <div id="termo-msg"></div>
+      <h2 style="margin-top:20px">Anexos <small style="font-weight:400;color:var(--suave)">— o responsável verá estes arquivos no link de assinatura</small></h2>
+      ${htmlListaAnexos(t.anexos, true)}
+      <div class="anexar">
+        <input type="file" id="anexo-arquivo" accept="application/pdf,image/jpeg,image/png">
+        <button type="button" class="btn sec" id="btn-anexar">Anexar arquivo</button>
+      </div>
+      <small style="color:var(--suave)">PDF, JPG ou PNG, até 3 MB cada (máximo de 5 arquivos).</small>
+      <div id="anexo-msg"></div>`;
+
+    $("btn-anexar").addEventListener("click", () => enviarAnexo(t.id));
+    acoes.querySelectorAll("[data-remover]").forEach((b) => b.addEventListener("click", async () => {
+      if (!confirm("Remover este anexo?")) return;
+      const { error: erro } = await sb.from("termos_anexos").delete().eq("id", b.dataset.remover);
+      if (erro) return mensagem("anexo-msg", textoErro(erro));
+      abrirTermo(t.id);
+    }));
 
     $("btn-copiar").addEventListener("click", async () => {
       try { await navigator.clipboard.writeText(link); } catch { $("link-assinatura").select(); document.execCommand("copy"); }
@@ -276,6 +295,29 @@ async function abrirTermo(id) {
   $("btn-imprimir").addEventListener("click", () => window.print());
   $("btn-voltar").addEventListener("click", () => ir("termos"));
   if (ehAdmin()) $("btn-excluir").addEventListener("click", () => excluirTermo(t));
+  acoes.querySelectorAll("[data-baixar]").forEach((b) => b.addEventListener("click", async () => {
+    b.disabled = true;
+    const { data: a, error: erro } = await sb.from("termos_anexos").select("nome, tipo, conteudo").eq("id", b.dataset.baixar).single();
+    b.disabled = false;
+    if (erro) return mensagem("termo-msg", textoErro(erro));
+    baixarAnexo(a.nome, a.tipo, a.conteudo);
+  }));
+}
+
+async function enviarAnexo(termoId) {
+  const arquivo = $("anexo-arquivo").files[0];
+  if (!arquivo) return mensagem("anexo-msg", "Escolha um arquivo primeiro.");
+  $("btn-anexar").disabled = true;
+  mensagem("anexo-msg", "Enviando…", "aviso");
+  try {
+    const dados = await lerAnexo(arquivo);
+    const { error } = await sb.from("termos_anexos").insert({ termo_id: termoId, ...dados });
+    if (error) throw error;
+    abrirTermo(termoId);
+  } catch (erro) {
+    $("btn-anexar").disabled = false;
+    mensagem("anexo-msg", textoErro(erro));
+  }
 }
 
 // Só o administrador exclui. O banco guarda uma cópia na lixeira (termos_excluidos).
@@ -302,13 +344,29 @@ async function carregarServidores() {
     <tr>
       <td>${esc(p.nome)}</td>
       <td>${esc(p.email)}</td>
-      <td>${p.papel === "admin" ? "Administrador" : "Servidor"}</td>
+      <td>${p.id === perfil.id ? "Administrador" : `
+        <select data-papel="${p.id}" aria-label="Perfil de ${esc(p.nome)}" style="width:auto">
+          <option value="servidor"${p.papel === "servidor" ? " selected" : ""}>Servidor</option>
+          <option value="admin"${p.papel === "admin" ? " selected" : ""}>Administrador</option>
+        </select>`}</td>
       <td>${p.ativo ? '<span class="selo assinado">Ativo</span>' : '<span class="selo inativo">Desativado</span>'}</td>
       <td>${p.id === perfil.id ? "" : `<button class="btn sec pequeno" data-ativar="${p.id}" data-valor="${!p.ativo}">${p.ativo ? "Desativar" : "Reativar"}</button>`}</td>
     </tr>`).join("");
   tbody.querySelectorAll("[data-ativar]").forEach((b) => b.addEventListener("click", async () => {
     const { error: erro } = await sb.from("perfis").update({ ativo: b.dataset.valor === "true" }).eq("id", b.dataset.ativar);
     if (erro) return mensagem("servidor-msg", textoErro(erro));
+    carregarServidores();
+  }));
+  tbody.querySelectorAll("[data-papel]").forEach((sel) => sel.addEventListener("change", async () => {
+    const nome = data.find((p) => p.id === sel.dataset.papel)?.nome;
+    const rotulo = sel.value === "admin" ? "Administrador" : "Servidor";
+    if (!confirm(`Alterar o perfil de ${nome} para ${rotulo}?`)) return carregarServidores();
+    const { data: alterado, error: erro } = await sb.from("perfis").update({ papel: sel.value }).eq("id", sel.dataset.papel).select("id");
+    if (erro || !alterado?.length) {
+      mensagem("servidor-msg", erro ? textoErro(erro) : "Não foi possível alterar o perfil.");
+      return carregarServidores();
+    }
+    mensagem("servidor-msg", `Perfil de ${nome} alterado para ${rotulo}. A pessoa verá a mudança ao recarregar a página ou entrar de novo.`, "ok");
     carregarServidores();
   }));
 }

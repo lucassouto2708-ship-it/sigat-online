@@ -15,7 +15,8 @@ Os servidores registram atendimentos, geram um link de assinatura, mandam pelo W
 As regras de segurança ficam **no banco** (Supabase), não só nas telas:
 
 - o servidor só vê e edita os próprios termos;
-- o administrador vê todos;
+- o administrador vê todos e pode mudar o perfil (Servidor/Administrador) de quem já foi cadastrado;
+- o servidor pode anexar arquivos ao termo (PDF, JPG ou PNG, até 3 MB, no máximo 5), que o responsável vê no link de assinatura;
 - termo assinado não pode ser alterado, excluído nem assinado de novo;
 - a assinatura só é gravada pelo link exclusivo do termo.
 
@@ -29,7 +30,8 @@ js/config.js               endereço e chave pública do Supabase  <- preencher
 js/comum.js                funções compartilhadas
 js/app.js                  lógica do sistema
 js/assinar.js              lógica da assinatura
-supabase/schema.sql        tabelas e regras de segurança do banco
+supabase/schema.sql        tabelas e regras de segurança do banco (instalação nova: rode só este)
+supabase/migracao-*.sql    atualizações para bancos já instalados (rode na ordem, uma vez cada)
 supabase/functions/criar-servidor/index.ts   função de cadastro de servidores
 ```
 
