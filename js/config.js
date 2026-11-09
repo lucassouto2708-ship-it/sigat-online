@@ -10,4 +10,7 @@ window.SIGAT_CONFIG = {
   SUPABASE_URL: "https://dqjprrubatrgtxhbabci.supabase.co",
   SUPABASE_ANON_KEY: "sb_publishable_iClPLbpHR9HDJvgBts9VDg_oZDEqPHo",
   EMPRESA: "TR Assessoria Pública",
+  // Botão "Solicitar intervenção" na tela do termo (WhatsApp: 55 + DDD + número, só dígitos)
+  INTERVENCAO_NOME: "Tércio",
+  INTERVENCAO_WHATSAPP: "553399090467",
 };

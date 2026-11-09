@@ -153,6 +153,10 @@ tr.clicavel:hover td { background: var(--azul-claro); }
 .link-box { display: flex; gap: 8px; margin-top: 8px; }
 .link-box input { font-size: 13px; }
 
+/* ---------- Solicitar intervenção ---------- */
+.intervencao { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--borda); }
+.icone-wpp { width: 18px; height: 18px; flex-shrink: 0; }
+
 /* ---------- Anexos ---------- */
 .anexos { list-style: none; margin: 0 0 12px; padding: 0; }
 .anexos li { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
