@@ -364,11 +364,28 @@ async function carregarServidores() {
           <option value="admin"${p.papel === "admin" ? " selected" : ""}>Administrador</option>
         </select>`}</td>
       <td>${p.ativo ? '<span class="selo assinado">Ativo</span>' : '<span class="selo inativo">Desativado</span>'}</td>
-      <td>${p.id === perfil.id ? "" : `<button class="btn sec pequeno" data-ativar="${p.id}" data-valor="${!p.ativo}">${p.ativo ? "Desativar" : "Reativar"}</button>`}</td>
+      <td><span class="anexo-acoes">
+        <button class="btn sec pequeno" data-renomear="${p.id}">Editar nome</button>
+        ${p.id === perfil.id ? "" : `<button class="btn sec pequeno" data-ativar="${p.id}" data-valor="${!p.ativo}">${p.ativo ? "Desativar" : "Reativar"}</button>`}
+      </span></td>
     </tr>`).join("");
   tbody.querySelectorAll("[data-ativar]").forEach((b) => b.addEventListener("click", async () => {
     const { error: erro } = await sb.from("perfis").update({ ativo: b.dataset.valor === "true" }).eq("id", b.dataset.ativar);
     if (erro) return mensagem("servidor-msg", textoErro(erro));
+    carregarServidores();
+  }));
+  tbody.querySelectorAll("[data-renomear]").forEach((b) => b.addEventListener("click", async () => {
+    const atual = data.find((p) => p.id === b.dataset.renomear);
+    const novo = prompt(`Novo nome para ${atual.nome}:`, atual.nome);
+    if (novo === null || novo.trim() === atual.nome) return;
+    if (novo.trim().length < 3) return mensagem("servidor-msg", "O nome precisa ter pelo menos 3 letras.");
+    const { data: alterado, error: erro } = await sb.from("perfis").update({ nome: novo.trim() }).eq("id", atual.id).select("id");
+    if (erro || !alterado?.length) return mensagem("servidor-msg", erro ? textoErro(erro) : "Não foi possível alterar o nome.");
+    if (atual.id === perfil.id) {
+      perfil.nome = novo.trim();
+      $("usuario-nome").textContent = `${perfil.nome} (admin)`;
+    }
+    mensagem("servidor-msg", `Nome alterado para ${novo.trim()}. Os próximos termos já sairão com o nome novo.`, "ok");
     carregarServidores();
   }));
   tbody.querySelectorAll("[data-papel]").forEach((sel) => sel.addEventListener("change", async () => {
