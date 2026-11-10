@@ -81,7 +81,7 @@ function linhaTermo(t) {
     <td>${esc(dataBR(t.data_atendimento))}</td>
     <td>${esc(t.local)}${t.setor ? `<br><small>${esc(t.setor)}</small>` : ""}</td>
     <td>${esc(t.responsavel_nome)}</td>
-    ${ehAdmin() ? `<td>${esc(t.servidor_nome)}</td>` : ""}
+    ${ehAdmin() ? `<td>${esc(nomeServidor(t))}</td>` : ""}
     <td>${t.status === "assinado"
       ? '<span class="selo assinado">Assinado</span>'
       : '<span class="selo pendente">Aguardando assinatura</span>'}</td>
@@ -92,7 +92,7 @@ function ligarCliques(tbody) {
   tbody.querySelectorAll("tr.clicavel").forEach((tr) => tr.addEventListener("click", () => ir("termo", Number(tr.dataset.id))));
 }
 
-const COLUNAS_LISTA = "id, numero, data_atendimento, local, setor, responsavel_nome, servidor_nome, status, criado_em";
+const COLUNAS_LISTA = "id, numero, data_atendimento, local, setor, responsavel_nome, servidor_id, servidor_nome, status, criado_em";
 
 // ---------------------------------------------------------------------
 // Painel
@@ -183,33 +183,111 @@ $("btn-cancelar").addEventListener("click", () => {
 // ---------------------------------------------------------------------
 // Lista de termos
 // ---------------------------------------------------------------------
+let nomesServidores = {}; // id -> nome atual (admin)
+
 async function carregarTermos() {
   const tbody = $("termos-lista");
   tbody.innerHTML = '<tr><td colspan="6" class="vazio">Carregando…</td></tr>';
-  const { data, error } = await sb.from("termos").select(COLUNAS_LISTA).order("criado_em", { ascending: false }).limit(1000);
-  if (error) {
-    tbody.innerHTML = `<tr><td colspan="6" class="vazio">${esc(textoErro(error))}</td></tr>`;
+  const [termos, perfis] = await Promise.all([
+    sb.from("termos").select(COLUNAS_LISTA).order("data_atendimento", { ascending: false }).order("criado_em", { ascending: false }).limit(2000),
+    ehAdmin() ? sb.from("perfis").select("id, nome").order("nome") : Promise.resolve({ data: [] }),
+  ]);
+  if (termos.error) {
+    tbody.innerHTML = `<tr><td colspan="6" class="vazio">${esc(textoErro(termos.error))}</td></tr>`;
     return;
   }
-  termosCache = data;
+  termosCache = termos.data;
+  nomesServidores = Object.fromEntries((perfis.data || []).map((p) => [p.id, p.nome]));
+
+  if (ehAdmin()) {
+    const sel = $("filtro-servidor"), atual = sel.value;
+    sel.innerHTML = '<option value="">Todos os servidores</option>'
+      + (perfis.data || []).map((p) => `<option value="${p.id}">${esc(p.nome)}</option>`).join("");
+    sel.value = atual;
+  }
+  const agrupar = $("agrupar");
+  if (!agrupar.dataset.iniciado) {
+    agrupar.dataset.iniciado = "1";
+    let salvo = null;
+    try { salvo = localStorage.getItem("sigat-agrupar"); } catch { /* sem armazenamento */ }
+    const permitido = (v) => ehAdmin() || !v.includes("servidor");
+    agrupar.value = salvo !== null && permitido(salvo) ? salvo : (ehAdmin() ? "servidor-semana" : "semana");
+  }
   filtrarTermos();
+}
+
+// Semana de segunda a domingo, pela data do atendimento
+function semanaDe(iso) {
+  const [a, m, d] = iso.split("-").map(Number);
+  const dia = new Date(a, m - 1, d);
+  const inicio = new Date(a, m - 1, d - ((dia.getDay() + 6) % 7));
+  const fim = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate() + 6);
+  const fmt = (x) => x.toLocaleDateString("pt-BR");
+  const chave = `${inicio.getFullYear()}-${String(inicio.getMonth() + 1).padStart(2, "0")}-${String(inicio.getDate()).padStart(2, "0")}`;
+  return { chave, rotulo: `Semana de ${fmt(inicio)} a ${fmt(fim)}` };
+}
+
+function nomeServidor(t) {
+  return nomesServidores[t.servidor_id] || t.servidor_nome || "—";
+}
+
+function resumoGrupo(lista) {
+  const assinados = lista.filter((t) => t.status === "assinado").length;
+  return `${lista.length} ${lista.length === 1 ? "termo" : "termos"} · ${assinados} assinado${assinados === 1 ? "" : "s"} · ${lista.length - assinados} pendente${lista.length - assinados === 1 ? "" : "s"}`;
+}
+
+// Agrupa mantendo a ordem: servidores em ordem alfabética, semanas da mais recente para a mais antiga
+function agruparPor(lista, chaveDe, rotuloDe, ordem) {
+  const grupos = new Map();
+  for (const t of lista) {
+    const k = chaveDe(t);
+    if (!grupos.has(k)) grupos.set(k, { rotulo: rotuloDe(t), itens: [] });
+    grupos.get(k).itens.push(t);
+  }
+  return [...grupos.entries()].sort(ordem).map(([, g]) => g);
+}
+
+const porServidor = (lista) => agruparPor(lista, (t) => t.servidor_id, nomeServidor, (a, b) => a[1].rotulo.localeCompare(b[1].rotulo, "pt-BR"));
+const porSemana = (lista) => agruparPor(lista, (t) => semanaDe(t.data_atendimento).chave, (t) => semanaDe(t.data_atendimento).rotulo, (a, b) => b[0].localeCompare(a[0]));
+
+function linhaGrupo(rotulo, lista, nivel) {
+  return `<tr class="grupo grupo-${nivel}"><td colspan="${ehAdmin() ? 6 : 5}"><strong>${esc(rotulo)}</strong><small>${resumoGrupo(lista)}</small></td></tr>`;
 }
 
 function filtrarTermos() {
   const busca = $("busca").value.trim().toLowerCase();
   const status = $("filtro-status").value;
+  const servidor = ehAdmin() ? $("filtro-servidor").value : "";
+  const modo = $("agrupar").value;
+  try { localStorage.setItem("sigat-agrupar", modo); } catch { /* sem armazenamento */ }
+
   const lista = termosCache.filter((t) =>
     (!status || t.status === status) &&
-    (!busca || [t.numero, t.local, t.setor, t.responsavel_nome, t.servidor_nome].join(" ").toLowerCase().includes(busca)));
+    (!servidor || t.servidor_id === servidor) &&
+    (!busca || [t.numero, t.local, t.setor, t.responsavel_nome, nomeServidor(t)].join(" ").toLowerCase().includes(busca)));
+
+  let html = "";
+  if (!lista.length) html = '<tr><td colspan="6" class="vazio">Nenhum termo encontrado.</td></tr>';
+  else if (modo === "servidor-semana") {
+    for (const s of porServidor(lista)) {
+      html += linhaGrupo(s.rotulo, s.itens, 1);
+      for (const w of porSemana(s.itens)) html += linhaGrupo(w.rotulo, w.itens, 2) + w.itens.map(linhaTermo).join("");
+    }
+  } else if (modo === "servidor") {
+    for (const s of porServidor(lista)) html += linhaGrupo(s.rotulo, s.itens, 1) + s.itens.map(linhaTermo).join("");
+  } else if (modo === "semana") {
+    for (const w of porSemana(lista)) html += linhaGrupo(w.rotulo, w.itens, 1) + w.itens.map(linhaTermo).join("");
+  } else html = lista.map(linhaTermo).join("");
+
   const tbody = $("termos-lista");
-  tbody.innerHTML = lista.length
-    ? lista.map(linhaTermo).join("")
-    : '<tr><td colspan="6" class="vazio">Nenhum termo encontrado.</td></tr>';
+  tbody.innerHTML = html;
   ligarCliques(tbody);
 }
 
 $("busca").addEventListener("input", filtrarTermos);
 $("filtro-status").addEventListener("change", filtrarTermos);
+$("filtro-servidor").addEventListener("change", filtrarTermos);
+$("agrupar").addEventListener("change", filtrarTermos);
 
 // ---------------------------------------------------------------------
 // Visualizar termo, link de assinatura, impressão

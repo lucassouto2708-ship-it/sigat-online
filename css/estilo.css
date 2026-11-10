@@ -108,6 +108,11 @@ tr.clicavel { cursor: pointer; }
 tr.clicavel:hover td { background: var(--azul-claro); }
 .vazio { color: var(--suave); text-align: center; padding: 20px; }
 
+tr.grupo td { padding-top: 14px; }
+tr.grupo strong { margin-right: 10px; }
+tr.grupo small { color: var(--suave); font-size: 12px; white-space: nowrap; }
+tr.grupo-1 td { background: var(--azul-claro); color: var(--azul-escuro); font-size: 15px; border-bottom: 2px solid var(--azul); }
+tr.grupo-2 td { background: var(--cinza); color: var(--texto); font-size: 13px; padding-left: 16px; }
 .selo { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .selo.assinado { background: var(--verde-claro); color: var(--verde); }
 .selo.pendente { background: var(--amarelo-claro); color: var(--amarelo); }
