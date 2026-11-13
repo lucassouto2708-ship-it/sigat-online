@@ -139,6 +139,38 @@ const CAMPOS = {
   "f-resp": "responsavel_nome", "f-tel": "responsavel_telefone", "f-desc": "descricao", "f-sit": "situacao",
 };
 
+// Rascunho automático: o que está sendo digitado fica guardado no navegador
+// (localStorage) até o termo ser salvo, para não perder nada se cair a luz,
+// fechar a aba ou a internet falhar no meio do preenchimento.
+const chaveRascunho = (id) => `sigat-rascunho-${id || "novo"}`;
+function lerRascunho(id) {
+  try { return JSON.parse(localStorage.getItem(chaveRascunho(id))); } catch { return null; }
+}
+function gravarRascunho() {
+  if ($("btn-salvar").disabled && $("termo-id").value) return; // termo assinado
+  const valores = {};
+  for (const campo of Object.keys(CAMPOS)) valores[campo] = $(campo).value;
+  try { localStorage.setItem(chaveRascunho($("termo-id").value), JSON.stringify({ valores, em: Date.now() })); } catch {}
+}
+function apagarRascunho(id) {
+  try { localStorage.removeItem(chaveRascunho(id)); } catch {}
+}
+function restaurarRascunho(id) {
+  const r = lerRascunho(id);
+  if (!r?.valores) return;
+  for (const [campo, valor] of Object.entries(r.valores)) if ($(campo)) $(campo).value = valor;
+  const quando = new Date(r.em).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+  $("form-msg").innerHTML = `<div class="msg aviso">Rascunho não salvo de ${esc(quando)} foi recuperado.
+    <a href="#" id="descartar-rascunho">Descartar rascunho</a></div>`;
+  $("descartar-rascunho").addEventListener("click", (e) => {
+    e.preventDefault();
+    apagarRascunho(id);
+    abrirFormulario(id);
+  });
+}
+$("form-termo").addEventListener("input", gravarRascunho);
+$("form-termo").addEventListener("change", gravarRascunho);
+
 async function abrirFormulario(id) {
   $("form-termo").reset();
   mensagem("form-msg", "");
@@ -147,6 +179,7 @@ async function abrirFormulario(id) {
   $("btn-salvar").disabled = false;
   if (!id) {
     $("f-data").value = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+    restaurarRascunho(id);
     return;
   }
   const { data, error } = await sb.from("termos").select("*").eq("id", id).single();
@@ -157,6 +190,7 @@ async function abrirFormulario(id) {
   }
   $("form-titulo").textContent = `Editar atendimento ${data.numero}`;
   for (const [campo, coluna] of Object.entries(CAMPOS)) $(campo).value = data[coluna] ?? "";
+  restaurarRascunho(id);
 }
 
 $("form-termo").addEventListener("submit", async (e) => {
@@ -172,11 +206,14 @@ $("form-termo").addEventListener("submit", async (e) => {
   $("btn-salvar").disabled = false;
 
   if (res.error) return mensagem("form-msg", textoErro(res.error));
+  apagarRascunho(id);
   ir("termo", res.data.id);
 });
 
 $("btn-cancelar").addEventListener("click", () => {
   const id = Number($("termo-id").value);
+  if (lerRascunho(id || null) && !confirm("Descartar o que foi preenchido e não salvo?")) return;
+  apagarRascunho(id || null);
   id ? ir("termo", id) : ir("painel");
 });
 
