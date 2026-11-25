@@ -17,6 +17,7 @@ As regras de segurança ficam **no banco** (Supabase), não só nas telas:
 - o servidor só vê e edita os próprios termos;
 - o administrador vê todos e pode mudar o perfil (Servidor/Administrador) de quem já foi cadastrado;
 - o servidor pode anexar arquivos ao termo (PDF, JPG ou PNG, até 3 MB, no máximo 5), que o responsável vê no link de assinatura;
+- o administrador envia a **imagem da agenda semanal**; o sistema lê técnicos e destinos (no próprio navegador), o admin confere e salva, e o painel cobra um termo por dia agendado (dia passado sem termo fica piscando em vermelho);
 - termo assinado não pode ser alterado, excluído nem assinado de novo;
 - a assinatura só é gravada pelo link exclusivo do termo.
 
@@ -29,6 +30,8 @@ css/estilo.css             visual
 js/config.js               endereço e chave pública do Supabase  <- preencher
 js/comum.js                funções compartilhadas
 js/app.js                  lógica do sistema
+js/agenda.js               agenda semanal (quadro no painel e envio pelo admin)
+js/agenda-ocr.js           leitura automática da imagem da agenda (Tesseract.js)
 js/assinar.js              lógica da assinatura
 supabase/schema.sql        tabelas e regras de segurança do banco (instalação nova: rode só este)
 supabase/migracao-*.sql    atualizações para bancos já instalados (rode na ordem, uma vez cada)

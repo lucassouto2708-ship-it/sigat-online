@@ -50,6 +50,27 @@
         <div class="indicador"><span>Aguardando assinatura</span><strong id="ind-pendentes">–</strong></div>
         <div class="indicador so-admin"><span>Servidores</span><strong id="ind-servidores">–</strong></div>
       </div>
+      <div class="cartao" id="agenda-cartao">
+        <div class="agenda-topo">
+          <h2 id="agenda-titulo">Agenda da semana</h2>
+          <div class="agenda-nav">
+            <button class="btn sec pequeno" id="agenda-ant" aria-label="Semana anterior">◀</button>
+            <span id="agenda-periodo"></span>
+            <button class="btn sec pequeno" id="agenda-prox" aria-label="Próxima semana">▶</button>
+          </div>
+        </div>
+        <div id="agenda-quadro"></div>
+        <div class="agenda-legenda">
+          <span><i class="ag-ok"></i> Termo feito</span>
+          <span><i class="ag-hoje"></i> Hoje, ainda sem termo</span>
+          <span><i class="ag-falta"></i> Dia passado sem termo</span>
+        </div>
+        <div class="botoes">
+          <button class="btn sec pequeno" id="agenda-ver-imagem" hidden>Ver imagem da agenda</button>
+          <button class="btn pequeno so-admin" id="agenda-enviar">Enviar agenda da semana</button>
+        </div>
+        <div id="agenda-imagem" hidden></div>
+      </div>
       <div class="cartao">
         <h2>Últimos atendimentos</h2>
         <div class="tabela-wrap"><table>
@@ -134,6 +155,36 @@
       <div id="termo-documento"></div>
     </div>
 
+    <!-- Enviar agenda semanal (admin) -->
+    <div id="view-agenda" class="view" hidden>
+      <h1>Enviar agenda da semana</h1>
+      <div class="cartao">
+        <p style="margin-top:0">Escolha a imagem da agenda (JPG ou PNG). O sistema lê os técnicos e os destinos de cada dia;
+          confira e corrija o que for preciso antes de salvar.</p>
+        <input type="file" id="agenda-arquivo" accept="image/jpeg,image/png">
+        <div id="agenda-progresso" hidden><progress id="agenda-barra" max="1" value="0"></progress> <span id="agenda-etapa"></span></div>
+        <div id="agenda-msg"></div>
+      </div>
+      <form id="form-agenda" class="cartao" hidden>
+        <h2>Conferência</h2>
+        <div class="campos">
+          <div><label for="agenda-semana">Segunda-feira da semana *</label><input id="agenda-semana" type="date" required></div>
+        </div>
+        <div class="tabela-wrap" style="margin-top:14px"><table class="agenda-conferir">
+          <thead id="agenda-conf-cab"></thead>
+          <tbody id="agenda-conf-lista"></tbody>
+        </table></div>
+        <small style="color:var(--suave)">"TR" = escritório (sede). Deixe o dia em branco se o técnico não tiver atribuição.
+          Técnico sem usuário vinculado aparece no quadro, mas não é cobrado.</small>
+        <div class="botoes">
+          <button class="btn" type="submit" id="agenda-salvar">Salvar agenda</button>
+          <button class="btn sec" type="button" id="agenda-linha">+ Técnico</button>
+          <button class="btn sec" type="button" id="agenda-cancelar">Cancelar</button>
+        </div>
+        <div id="agenda-salvar-msg"></div>
+      </form>
+    </div>
+
     <!-- Servidores (admin) -->
     <div id="view-servidores" class="view" hidden>
       <h1>Servidores</h1>
@@ -169,6 +220,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.79.0/dist/umd/supabase.js"></script>
 <script src="js/config.js"></script>
 <script src="js/comum.js"></script>
+<script src="js/agenda-ocr.js"></script>
+<script src="js/agenda.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
