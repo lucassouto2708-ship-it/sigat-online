@@ -71,6 +71,7 @@ function ir(nome, param) {
   if (nome === "termos") carregarTermos();
   if (nome === "termo") abrirTermo(param);
   if (nome === "servidores") carregarServidores();
+  if (nome === "agenda") abrirEnvioAgenda();
 }
 
 document.querySelectorAll(".menu button").forEach((b) => b.addEventListener("click", () => ir(b.dataset.ir)));
@@ -129,6 +130,7 @@ async function carregarPainel() {
     tbody.innerHTML = ultimos.data.map(linhaTermo).join("");
     ligarCliques(tbody);
   }
+  carregarAgenda();
 }
 
 // ---------------------------------------------------------------------
@@ -172,6 +174,9 @@ $("form-termo").addEventListener("input", gravarRascunho);
 $("form-termo").addEventListener("change", gravarRascunho);
 
 async function abrirFormulario(id) {
+  // Vindo da agenda: { data, local } para já preencher o dia e o destino
+  const preset = typeof id === "object" && id ? id : null;
+  if (preset) id = null;
   $("form-termo").reset();
   mensagem("form-msg", "");
   $("termo-id").value = id || "";
@@ -179,7 +184,10 @@ async function abrirFormulario(id) {
   $("btn-salvar").disabled = false;
   if (!id) {
     $("f-data").value = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
-    restaurarRascunho(id);
+    if (preset) {
+      $("f-data").value = preset.data;
+      $("f-local").value = preset.local || "";
+    } else restaurarRascunho(id);
     return;
   }
   const { data, error } = await sb.from("termos").select("*").eq("id", id).single();
